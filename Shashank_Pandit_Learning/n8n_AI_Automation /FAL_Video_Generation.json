@@ -1,0 +1,686 @@
+{
+  "name": "FAL_Video_Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "16oCLPXm566SZj4giQs2PXJB7BwXzPbXDIo9fu5f5ssw",
+          "mode": "list",
+          "cachedResultName": "Falai",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16oCLPXm566SZj4giQs2PXJB7BwXzPbXDIo9fu5f5ssw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16oCLPXm566SZj4giQs2PXJB7BwXzPbXDIo9fu5f5ssw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "8055bdab-5ad6-4b43-a923-784a35deabe0",
+      "name": "Get Video Prompts from Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -1472,
+        96
+      ],
+      "typeVersion": 4.6,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "nJnT6jpIYVqzopfj",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cdb72590-f2a0-48d2-a03d-c348c2315d13",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.STATUS }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "63b42c65-a4a7-4b10-8171-4b9abc161ceb",
+      "name": "Filter Unprocessed Videos",
+      "type": "n8n-nodes-base.filter",
+      "position": [
+        -1248,
+        96
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e49ca4dc-1d03-4565-b90b-7e6ab37dc49f",
+              "name": "PROMPT",
+              "type": "string",
+              "value": "={{ $json.PROMPT }}"
+            },
+            {
+              "id": "ff40b7b6-8f80-4db7-be76-0dcd05130715",
+              "name": "DURATION (In Seconds)",
+              "type": "number",
+              "value": "={{ $json.DURATION }}"
+            },
+            {
+              "id": "2cb21356-894c-491a-bb88-bd27fb2c8473",
+              "name": "VIDEO RESOLUTION",
+              "type": "string",
+              "value": "={{ $json.RESOLUTION }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0b793a07-2ff1-4683-aafe-7ada377e645c",
+      "name": "Normalize Video Parameters",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -1024,
+        96
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {},
+      "id": "2a62ae62-80c9-41bb-9adb-3fe043d1f1ab",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -1696,
+        96
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "fal-ai/kling-video/v2.6/pro/image-to-video",
+          "mode": "list",
+          "cachedResultName": "Kling Video v2.6 Image to Video [image-to-video]"
+        },
+        "modelParameters": {
+          "parameters": [
+            {
+              "parameter": "prompt",
+              "value": "={{ $json.PROMPT }}"
+            },
+            {
+              "parameter": "duration",
+              "value": "={{ $json['DURATION (In Seconds)'] }}"
+            },
+            {
+              "parameter": "prompt",
+              "value": "={{ $json['VIDEO RESOLUTION'] }}"
+            }
+          ]
+        },
+        "options": {
+          "waitForCompletion": true,
+          "pollInterval": 5,
+          "maxWaitTime": 600
+        }
+      },
+      "type": "@fal-ai/n8n-nodes-fal.falAi",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        96
+      ],
+      "id": "4fc80c06-5936-4420-a0c5-0b9845330f9d",
+      "name": "Generate media using AI model",
+      "credentials": {
+        "falAiApi": {
+          "id": "QtrZzQXtDxaHGQlV",
+          "name": "fal.ai account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Generate media using AI model').item.json.video.url }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 3000
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "b60abfec-e6b3-48be-a3b3-5c63d2791491",
+      "name": "Download Completed Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -224,
+        96
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "name": "={{ $json.output.title }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1R8hHhcjcQ9Fckee8fx-gSAPVtpEBuUdh",
+          "mode": "list",
+          "cachedResultName": "AI_generated_videos",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1R8hHhcjcQ9Fckee8fx-gSAPVtpEBuUdh"
+        },
+        "options": {}
+      },
+      "id": "9f0b267c-57ca-48f6-ba8a-01990713fc8e",
+      "name": "Upload to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 3,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "74QN3gfqgnHKKT3N",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "16oCLPXm566SZj4giQs2PXJB7BwXzPbXDIo9fu5f5ssw",
+          "mode": "list",
+          "cachedResultName": "Falai",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16oCLPXm566SZj4giQs2PXJB7BwXzPbXDIo9fu5f5ssw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15uN-0nsADY6OdW9uOBerN7TKenKIiMsa3ieG9YlIzHU/edit#gid=0"
+        },
+        "columns": {
+          "value": {
+            "PROMPT": "={{ $items('Download Completed Video')[$itemIndex].json.output.prompt }}",
+            "STATUS": "Video Created",
+            "VIDEO URL": "={{ $json.webViewLink }}",
+            "VIDEO TITLE": "={{ $items('Download Completed Video')[$itemIndex].json.output.title }}"
+          },
+          "schema": [
+            {
+              "id": "PROMPT",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "PROMPT",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DURATION (In Seconds)",
+              "type": "string",
+              "display": true,
+              "removed": true,
+              "required": false,
+              "displayName": "DURATION (In Seconds)",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "VIDEO RESOLUTION",
+              "type": "string",
+              "display": true,
+              "removed": true,
+              "required": false,
+              "displayName": "VIDEO RESOLUTION",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "VIDEO TITLE",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "VIDEO TITLE",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "VIDEO URL",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "VIDEO URL",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "STATUS",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "STATUS",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "type": "number",
+              "display": true,
+              "removed": true,
+              "readOnly": true,
+              "required": false,
+              "displayName": "row_number",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "PROMPT"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "9e0bea34-9873-4896-8d5e-2bfa37ca7661",
+      "name": "Add video URL and update video status",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        224,
+        0
+      ],
+      "typeVersion": 4.6,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "nJnT6jpIYVqzopfj",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upload-post.com/api/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "={{ $('Generate SEO Title with AI').item.json.output.title }}"
+            },
+            {
+              "name": "user",
+              "value": "byaiforai"
+            },
+            {
+              "name": "platform[]",
+              "value": "youtube"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "video",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "66028945-ce47-4b22-ae33-14e9ef77e4b8",
+      "name": "HTTP Request1",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        0,
+        192
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "N1eGgjz3xYD6j1ad",
+          "name": "Replicate_Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "16oCLPXm566SZj4giQs2PXJB7BwXzPbXDIo9fu5f5ssw",
+          "mode": "list",
+          "cachedResultName": "Falai",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16oCLPXm566SZj4giQs2PXJB7BwXzPbXDIo9fu5f5ssw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SkuCuFMk4Djo1cJUGVypA-Tv7kQG_E3art9U27zpFaM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "VIDEO": "={{ $('Generate SEO Title with AI').item.json.output.title }}",
+            "YOUTUBE_URL": "={{ $json.results.youtube.url }}",
+            "PROMPT": "={{ $('Get Video Prompts from Sheet').item.json.PROMPT }}"
+          },
+          "matchingColumns": [
+            "PROMPT"
+          ],
+          "schema": [
+            {
+              "id": "PROMPT",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "PROMPT",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DURATION",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "DURATION",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "VIDEO",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "VIDEO",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YOUTUBE_URL",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "YOUTUBE_URL",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "type": "string",
+              "display": true,
+              "removed": true,
+              "readOnly": true,
+              "required": false,
+              "displayName": "row_number",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "16793cef-6ccf-4350-9636-3ca4f1c80ca9",
+      "name": "Update Youtube URL",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        224,
+        192
+      ],
+      "typeVersion": 4.5,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "nJnT6jpIYVqzopfj",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Create an engaging, SEO-optimized YouTube title for this video.\n\nVideo prompt: {{ $('Create Replicate Video Job').item.json.input.prompt }}\n\nRequirements:\n- Maximum 60 characters\n- Include relevant keywords\n- Make it click-worthy but honest\n- No clickbait or misleading content\n\nReturn ONLY in JSON the title, prompt and video id, nothing else.\n\n{\n  \"title\": \"String\",\n  \"video_id\": \"{{ $json.id }}\",\n  \"prompt\": \"{{ $json.input.prompt }}\"\n}",
+        "hasOutputParser": true,
+        "options": {
+          "batching": {}
+        }
+      },
+      "id": "b6b79784-48f0-41f9-88e6-ed766c919695",
+      "name": "Generate SEO Title with AI",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -576,
+        96
+      ],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "options": {}
+      },
+      "id": "30c3cee7-ce5c-40f5-85d3-91fa69d77f85",
+      "name": "GPT-4 Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        -656,
+        336
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "t7fq9JejErn45QCc",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"title\": \"String\",\n  \"video_id\": \"String\",\n  \"prompt\": \"String\"\n}"
+      },
+      "id": "a5bc2de4-df6c-4871-98eb-213bcc482358",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        -432,
+        320
+      ],
+      "typeVersion": 1.3
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Video Prompts from Sheet": {
+      "main": [
+        [
+          {
+            "node": "Filter Unprocessed Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Unprocessed Videos": {
+      "main": [
+        [
+          {
+            "node": "Normalize Video Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Video Prompts from Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Video Parameters": {
+      "main": [
+        [
+          {
+            "node": "Generate media using AI model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate media using AI model": {
+      "main": [
+        [
+          {
+            "node": "Generate SEO Title with AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Add video URL and update video status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Update Youtube URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Completed Video": {
+      "main": [
+        [
+          {
+            "node": "Upload to Google Drive",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-4 Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate SEO Title with AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate SEO Title with AI",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate SEO Title with AI": {
+      "main": [
+        [
+          {
+            "node": "Download Completed Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "8276733a-cbd4-43e0-a780-75eaaf81ae4c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "367a8b1fd74cb8238db46aa43e38c21dd6b10e21b7a3a31f9405314b61dc29b3"
+  },
+  "nodeGroups": [],
+  "id": "GMH1stY8LjVFGVaP",
+  "tags": []
+}

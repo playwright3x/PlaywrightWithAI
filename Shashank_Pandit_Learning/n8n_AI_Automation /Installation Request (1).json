@@ -1,0 +1,442 @@
+{
+  "name": "Installation Request",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Installation Form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Employee Name "
+            },
+            {
+              "fieldLabel": "Email ",
+              "placeholder": "test@gmail.com"
+            },
+            {
+              "fieldLabel": "Request Type ",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Software"
+                  },
+                  {
+                    "option": "Hardware"
+                  },
+                  {
+                    "option": "Others"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Submission Date",
+              "fieldType": "date"
+            },
+            {
+              "fieldLabel": "Department",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "IT"
+                  },
+                  {
+                    "option": "Sales "
+                  },
+                  {
+                    "option": "DevOps"
+                  },
+                  {
+                    "option": "Data scientist"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Asset Number"
+            },
+            {
+              "fieldLabel": "Installation Date ",
+              "fieldType": "date"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1c189ddb-9382-497b-91aa-7856935c1fca",
+      "name": "On form submission",
+      "webhookId": "8de87156-8ae0-4ddf-9085-18474fd87d42"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json[\"Request Type \"] }}",
+                    "rightValue": "Software",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "9565465a-b4fb-48e3-b268-f1abf53fe9cc"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a2f5d779-2af7-46f0-8e7e-9df21a4b6c3a",
+                    "leftValue": "={{ $json[\"Request Type \"] }}",
+                    "rightValue": "Hardware",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": "={{ false }}"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "104587fa-43df-4b1f-9cea-962284f8c425",
+                    "leftValue": "={{ $json['Request Type '] }}",
+                    "rightValue": "Others",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "49b09121-4312-4919-a714-81cc05ae613c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "41e3d041-63ad-4a0f-a868-086701b83aae",
+              "leftValue": "={{ $json[\"Submission Date\"] }}",
+              "rightValue": "={{ $now.plus(7,\"days\") }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              }
+            },
+            {
+              "id": "19786c37-0ae7-4920-9b27-9252064f2d0d",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        512,
+        -112
+      ],
+      "id": "7904d4d3-1c40-4ea7-a5ef-39db4fea5a47",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BET2G3340",
+          "mode": "list",
+          "cachedResultName": "all-practise"
+        },
+        "text": "=Request Type:{{ $json['Request Type '] }}\nEmployee Name:{{ $json['Employee Name '] }}\nSubmission Date:{{ $json['Submission Date'] }}\nInstallation Date:{{ $json['Installation Date '] }}\nRequest Type:{{ $json['Request Type '] }}\n",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        896,
+        -128
+      ],
+      "id": "3b7610a9-21e6-416d-b78f-f8dcc9a2c94e",
+      "name": "Send a message",
+      "webhookId": "47ced3ed-28e1-4fe1-adaa-c3f0122e115f",
+      "credentials": {
+        "slackApi": {
+          "id": "oKZl6oqYFn67VPWF",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "4e745f13-6f3a-4972-aeb2-66b5130fdb76",
+              "leftValue": "={{ $json['Submission Date'] }}",
+              "rightValue": "={{ $now.plus(7,\"days\") }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        512,
+        16
+      ],
+      "id": "689444a5-c2a3-4f70-b5ee-179b4b6e12dc",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6a200ac3-c9bf-4dee-9b5c-45edb416fc79",
+              "leftValue": "={{ $('On form submission').item.json['Submission Date'] }}",
+              "rightValue": "={{ $now.plus(7,\"days\") }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        464,
+        160
+      ],
+      "id": "e0f16c8d-ede7-4266-a240-de2da800de59",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BET2G3340",
+          "mode": "list",
+          "cachedResultName": "all-practise"
+        },
+        "text": "=New Request Type :{{ $('On form submission').item.json['Request Type '] }}\n\nEmail :{{ $('On form submission').item.json['Email '] }}\n\nEmployee Name: {{ $('On form submission').item.json['Employee Name '] }}\n\nSubmission Date : {{ $('On form submission').item.json['Submission Date'] }}\n\nDepartment:{{ $('On form submission').item.json.Department }}\n\nNew Request Type :{{ $('On form submission').item.json['Request Type '] }}\n",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        896,
+        64
+      ],
+      "id": "c70a4761-c758-40ee-a2cf-5c25075553a2",
+      "name": "Send a message1",
+      "webhookId": "1816f90a-bffd-4aae-9561-a573f95bb9ce",
+      "credentials": {
+        "slackApi": {
+          "id": "oKZl6oqYFn67VPWF",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BET2G3340",
+          "mode": "list",
+          "cachedResultName": "all-practise"
+        },
+        "text": "=New Request :{{ $('On form submission').item.json['Request Type '] }}\n\nEmail : {{ $('On form submission').item.json['Email '] }}\n\nEmployee Name : {{ $('On form submission').item.json['Employee Name '] }}\n\nDepartment :{{ $('On form submission').item.json.Department }}\n\nNew Request : {{ $('On form submission').item.json['Request Type '] }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        896,
+        256
+      ],
+      "id": "daa85a40-59fe-4428-ab58-13fb3a22b41d",
+      "name": "Send a message2",
+      "webhookId": "648bddb6-e4ee-4b52-9bc8-744bd2dc3a20",
+      "credentials": {
+        "slackApi": {
+          "id": "oKZl6oqYFn67VPWF",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7587b2d3-f6ca-4f75-ae01-6748254145a6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "62fd63cfc978165bc392c33aef444d686b19211af512d5b52e994900fe42e2f0"
+  },
+  "nodeGroups": [],
+  "id": "Ee0kV13RU65c05mS",
+  "tags": []
+}

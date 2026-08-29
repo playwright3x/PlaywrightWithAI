@@ -1,0 +1,153 @@
+{
+  "name": "Simple Installation Request",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Installation Form ",
+        "formDescription": "collecting email and installation date from the customers ",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Customer ",
+              "fieldType": "email",
+              "placeholder": "username@gmail.com"
+            },
+            {
+              "fieldLabel": "Installation Date ",
+              "fieldType": "date",
+              "defaultValue": "2026-07-13"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -192,
+        -48
+      ],
+      "id": "d18e57a8-d362-490b-a684-cbd0412aa4aa",
+      "name": "On form submission",
+      "webhookId": "c95a460c-0f39-484f-bb0a-b9831943f94e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6921d1fe-5999-422c-af43-286d69d5f92b",
+              "leftValue": "={{ $json['Installation Date '] }}",
+              "rightValue": "={{ $now.plus(7,'days') }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "beforeOrEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        16,
+        -48
+      ],
+      "id": "9a54d7ad-e34e-4578-8e0d-c74374487ed4",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        224,
+        48
+      ],
+      "id": "58b630a3-1945-4ef5-8db0-742046d78f94",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BET2G3340",
+          "mode": "list",
+          "cachedResultName": "all-practise"
+        },
+        "text": "=There is a new installation Request from {{ $json['Customer '] }} and installation date {{ $json['Installation Date '] }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        224,
+        -144
+      ],
+      "id": "d95c1ccd-7e4c-4e68-8ac0-a1915634864c",
+      "name": "Send a message",
+      "webhookId": "d47b7a3a-1f38-4da8-9f69-dae1d0edaef9",
+      "credentials": {
+        "slackApi": {
+          "id": "oKZl6oqYFn67VPWF",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ff212a57-14af-4577-9b52-6a0176c9ef21",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "62fd63cfc978165bc392c33aef444d686b19211af512d5b52e994900fe42e2f0"
+  },
+  "nodeGroups": [],
+  "id": "0OhD5ZQwS4mLWAlJ",
+  "tags": []
+}

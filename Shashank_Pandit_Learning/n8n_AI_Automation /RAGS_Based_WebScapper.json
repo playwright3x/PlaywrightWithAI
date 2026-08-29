@@ -1,0 +1,618 @@
+{
+  "name": "RAGS_Based_WebScapper",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Website Scrapper ",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "URL of Website ",
+              "placeholder": "https://docs.example.com"
+            },
+            {
+              "fieldLabel": "max pages",
+              "fieldType": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -416,
+        -64
+      ],
+      "id": "738e9531-9ff0-44a9-9b21-1d3b5a825d9f",
+      "name": "On form submission",
+      "webhookId": "e65c2b7a-fa7b-4cf9-b915-488f1f618ab8"
+    },
+    {
+      "parameters": {
+        "resource": "Crawling",
+        "operation": "crawl",
+        "url": "={{ $json['URL of Website '] }}",
+        "limit": "={{ $json['max pages'] }}",
+        "excludePaths": {
+          "items": [
+            {}
+          ]
+        },
+        "crawlOptions": {},
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -64
+      ],
+      "id": "56f77122-d434-4237-a206-e32583fc26b6",
+      "name": "Crawl a website and scrape all pages",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "a22d2B0wAvCOKGHd",
+          "name": "Firecrawl API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        -64
+      ],
+      "id": "d5dc862f-bec1-42e3-aba2-fc8c3fecc062",
+      "name": "Wait for 30 seconds",
+      "webhookId": "c7baaf7c-3180-4842-b40c-5783ca7979c9"
+    },
+    {
+      "parameters": {
+        "resource": "Crawling",
+        "operation": "getCrawlStatus",
+        "crawlId": "={{ $json.id }}",
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        176,
+        -64
+      ],
+      "id": "3c1b3ff4-ad17-4fc5-88ed-ae7a02eb0d76",
+      "name": "Get crawl status",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "a22d2B0wAvCOKGHd",
+          "name": "Firecrawl API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "da197a73-a45d-425b-82a8-f2a9f01f525f",
+              "leftValue": "={{ $json.data.status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        -64
+      ],
+      "id": "ab928229-be20-428c-ac21-efd1d1347f92",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data.data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -80
+      ],
+      "id": "68d7beb1-b734-4941-9fe6-543051bb17b1",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "BookStore",
+          "mode": "list",
+          "cachedResultName": "BookStore"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        848,
+        -128
+      ],
+      "id": "3530dd19-d8e0-4a3c-ba5e-a8994c61b09c",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "8pzs1hPwT885mRDf",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1088,
+        176
+      ],
+      "id": "bfbba59a-e131-4d9c-91a5-02cce8fb7027",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        112
+      ],
+      "id": "d1ae9248-855d-442e-93d3-48624646ee31",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "t7fq9JejErn45QCc",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is Shashank Pandit. How can I assist you today?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        -560
+      ],
+      "id": "a9135908-c16e-48db-8959-c19368eea288",
+      "name": "When chat message received",
+      "webhookId": "251849e7-8ec1-451c-8cb2-0d95b3d3a725"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant. You have access to a knowledge base scraped from a website. Always search the knowledge base before answering. Cite the source URL when referencing content. If the knowledge base does not contain relevant information, say so clearly.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        288,
+        -592
+      ],
+      "id": "06fb3b02-6ce2-4b5c-9d46-c11749b9d31c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        -368
+      ],
+      "id": "e09ce550-f7a8-4c11-b3c4-63109c7364cb",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "t7fq9JejErn45QCc",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "\"Search the scraped website knowledge base to answer questions about the website content. Always call this tool when the user asks anything about the website",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        -544
+      ],
+      "id": "22e71e37-a848-4625-9799-079e9aeab961",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "8pzs1hPwT885mRDf",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        -336
+      ],
+      "id": "a6bcf953-37e0-45b3-a235-96e39f7fea69",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "t7fq9JejErn45QCc",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        336,
+        -352
+      ],
+      "id": "f7f32e50-f363-49fb-b2d8-62b045e18bda",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "W7aIimIDDou3sSsp",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Get crawl status": [
+      {
+        "json": {
+          "data": {
+            "success": true,
+            "status": "completed",
+            "completed": 5,
+            "total": 5,
+            "creditsUsed": 5,
+            "expiresAt": "2026-07-20T08:23:55.000Z",
+            "data": [
+              {
+                "markdown": "- [Home](https://books.toscrape.com/index.html)\n- All products\n\n# All products\n\n**1000** results - showing **1** to **20**.\n\n\n\n\n\n\n**Warning!** This is a demo website for web scraping purposes. Prices and ratings here were randomly assigned and have no real meaning.\n\n01. [![A Light in the Attic](https://books.toscrape.com/media/cache/2c/da/2cdad67c44b002e7ead0cc35693c0e8b.jpg)](https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html)\n\n\n\n\n\n\n\n    ### [A Light in the ...](https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html \"A Light in the Attic\")\n\n\n\n\n\n    £51.77\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n02. [![Tipping the Velvet](https://books.toscrape.com/media/cache/26/0c/260c6ae16bce31c8f8c95daddd9f4a1c.jpg)](https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html)\n\n\n\n\n\n\n\n    ### [Tipping the Velvet](https://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html \"Tipping the Velvet\")\n\n\n\n\n\n    £53.74\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n03. [![Soumission](https://books.toscrape.com/media/cache/3e/ef/3eef99c9d9adef34639f510662022830.jpg)](https://books.toscrape.com/catalogue/soumission_998/index.html)\n\n\n\n\n\n\n\n    ### [Soumission](https://books.toscrape.com/catalogue/soumission_998/index.html \"Soumission\")\n\n\n\n\n\n    £50.10\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n04. [![Sharp Objects](https://books.toscrape.com/media/cache/32/51/3251cf3a3412f53f339e42cac2134093.jpg)](https://books.toscrape.com/catalogue/sharp-objects_997/index.html)\n\n\n\n\n\n\n\n    ### [Sharp Objects](https://books.toscrape.com/catalogue/sharp-objects_997/index.html \"Sharp Objects\")\n\n\n\n\n\n    £47.82\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n05. [![Sapiens: A Brief History of Humankind](https://books.toscrape.com/media/cache/be/a5/bea5697f2534a2f86a3ef27b5a8c12a6.jpg)](https://books.toscrape.com/catalogue/sapiens-a-brief-history-of-humankind_996/index.html)\n\n\n\n\n\n\n\n    ### [Sapiens: A Brief History ...](https://books.toscrape.com/catalogue/sapiens-a-brief-history-of-humankind_996/index.html \"Sapiens: A Brief History of Humankind\")\n\n\n\n\n\n    £54.23\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n06. [![The Requiem Red](https://books.toscrape.com/media/cache/68/33/68339b4c9bc034267e1da611ab3b34f8.jpg)](https://books.toscrape.com/catalogue/the-requiem-red_995/index.html)\n\n\n\n\n\n\n\n    ### [The Requiem Red](https://books.toscrape.com/catalogue/the-requiem-red_995/index.html \"The Requiem Red\")\n\n\n\n\n\n    £22.65\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n07. [![The Dirty Little Secrets of Getting Your Dream Job](https://books.toscrape.com/media/cache/92/27/92274a95b7c251fea59a2b8a78275ab4.jpg)](https://books.toscrape.com/catalogue/the-dirty-little-secrets-of-getting-your-dream-job_994/index.html)\n\n\n\n\n\n\n\n    ### [The Dirty Little Secrets ...](https://books.toscrape.com/catalogue/the-dirty-little-secrets-of-getting-your-dream-job_994/index.html \"The Dirty Little Secrets of Getting Your Dream Job\")\n\n\n\n\n\n    £33.34\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n08. [![The Coming Woman: A Novel Based on the Life of the Infamous Feminist, Victoria Woodhull](https://books.toscrape.com/media/cache/3d/54/3d54940e57e662c4dd1f3ff00c78cc64.jpg)](https://books.toscrape.com/catalogue/the-coming-woman-a-novel-based-on-the-life-of-the-infamous-feminist-victoria-woodhull_993/index.html)\n\n\n\n\n\n\n\n    ### [The Coming Woman: A ...](https://books.toscrape.com/catalogue/the-coming-woman-a-novel-based-on-the-life-of-the-infamous-feminist-victoria-woodhull_993/index.html \"The Coming Woman: A Novel Based on the Life of the Infamous Feminist, Victoria Woodhull\")\n\n\n\n\n\n    £17.93\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n09. [![The Boys in the Boat: Nine Americans and Their Epic Quest for Gold at the 1936 Berlin Olympics](https://books.toscrape.com/media/cache/66/88/66883b91f6804b2323c8369331cb7dd1.jpg)](https://books.toscrape.com/catalogue/the-boys-in-the-boat-nine-americans-and-their-epic-quest-for-gold-at-the-1936-berlin-olympics_992/index.html)\n\n\n\n\n\n\n\n    ### [The Boys in the ...](https://books.toscrape.com/catalogue/the-boys-in-the-boat-nine-americans-and-their-epic-quest-for-gold-at-the-1936-berlin-olympics_992/index.html \"The Boys in the Boat: Nine Americans and Their Epic Quest for Gold at the 1936 Berlin Olympics\")\n\n\n\n\n\n    £22.60\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n10. [![The Black Maria](https://books.toscrape.com/media/cache/58/46/5846057e28022268153beff6d352b06c.jpg)](https://books.toscrape.com/catalogue/the-black-maria_991/index.html)\n\n\n\n\n\n\n\n    ### [The Black Maria](https://books.toscrape.com/catalogue/the-black-maria_991/index.html \"The Black Maria\")\n\n\n\n\n\n    £52.15\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n11. [![Starving Hearts (Triangular Trade Trilogy, #1)](https://books.toscrape.com/media/cache/be/f4/bef44da28c98f905a3ebec0b87be8530.jpg)](https://books.toscrape.com/catalogue/starving-hearts-triangular-trade-trilogy-1_990/index.html)\n\n\n\n\n\n\n\n    ### [Starving Hearts (Triangular Trade ...](https://books.toscrape.com/catalogue/starving-hearts-triangular-trade-trilogy-1_990/index.html \"Starving Hearts (Triangular Trade Trilogy, \\#1)\")\n\n\n\n\n\n    £13.99\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n12. [![Shakespeare's Sonnets](https://books.toscrape.com/media/cache/10/48/1048f63d3b5061cd2f424d20b3f9b666.jpg)](https://books.toscrape.com/catalogue/shakespeares-sonnets_989/index.html)\n\n\n\n\n\n\n\n    ### [Shakespeare's Sonnets](https://books.toscrape.com/catalogue/shakespeares-sonnets_989/index.html \"Shakespeare's Sonnets\")\n\n\n\n\n\n    £20.66\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n13. [![Set Me Free](https://books.toscrape.com/media/cache/5b/88/5b88c52633f53cacf162c15f4f823153.jpg)](https://books.toscrape.com/catalogue/set-me-free_988/index.html)\n\n\n\n\n\n\n\n    ### [Set Me Free](https://books.toscrape.com/catalogue/set-me-free_988/index.html \"Set Me Free\")\n\n\n\n\n\n    £17.46\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n14. [![Scott Pilgrim's Precious Little Life (Scott Pilgrim #1)](https://books.toscrape.com/media/cache/94/b1/94b1b8b244bce9677c2f29ccc890d4d2.jpg)](https://books.toscrape.com/catalogue/scott-pilgrims-precious-little-life-scott-pilgrim-1_987/index.html)\n\n\n\n\n\n\n\n    ### [Scott Pilgrim's Precious Little ...](https://books.toscrape.com/catalogue/scott-pilgrims-precious-little-life-scott-pilgrim-1_987/index.html \"Scott Pilgrim's Precious Little Life (Scott Pilgrim \\#1)\")\n\n\n\n\n\n    £52.29\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n15. [![Rip it Up and Start Again](https://books.toscrape.com/media/cache/81/c4/81c4a973364e17d01f217e1188253d5e.jpg)](https://books.toscrape.com/catalogue/rip-it-up-and-start-again_986/index.html)\n\n\n\n\n\n\n\n    ### [Rip it Up and ...](https://books.toscrape.com/catalogue/rip-it-up-and-start-again_986/index.html \"Rip it Up and Start Again\")\n\n\n\n\n\n    £35.02\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n16. [![Our Band Could Be Your Life: Scenes from the American Indie Underground, 1981-1991](https://books.toscrape.com/media/cache/54/60/54607fe8945897cdcced0044103b10b6.jpg)](https://books.toscrape.com/catalogue/our-band-could-be-your-life-scenes-from-the-american-indie-underground-1981-1991_985/index.html)\n\n\n\n\n\n\n\n    ### [Our Band Could Be ...](https://books.toscrape.com/catalogue/our-band-could-be-your-life-scenes-from-the-american-indie-underground-1981-1991_985/index.html \"Our Band Could Be Your Life: Scenes from the American Indie Underground, 1981-1991\")\n\n\n\n\n\n    £57.25\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n17. [![Olio](https://books.toscrape.com/media/cache/55/33/553310a7162dfbc2c6d19a84da0df9e1.jpg)](https://books.toscrape.com/catalogue/olio_984/index.html)\n\n\n\n\n\n\n\n    ### [Olio](https://books.toscrape.com/catalogue/olio_984/index.html \"Olio\")\n\n\n\n\n\n    £23.88\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n18. [![Mesaerion: The Best Science Fiction Stories 1800-1849](https://books.toscrape.com/media/cache/09/a3/09a3aef48557576e1a85ba7efea8ecb7.jpg)](https://books.toscrape.com/catalogue/mesaerion-the-best-science-fiction-stories-1800-1849_983/index.html)\n\n\n\n\n\n\n\n    ### [Mesaerion: The Best Science ...](https://books.toscrape.com/catalogue/mesaerion-the-best-science-fiction-stories-1800-1849_983/index.html \"Mesaerion: The Best Science Fiction Stories 1800-1849\")\n\n\n\n\n\n    £37.59\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n19. [![Libertarianism for Beginners](https://books.toscrape.com/media/cache/0b/bc/0bbcd0a6f4bcd81ccb1049a52736406e.jpg)](https://books.toscrape.com/catalogue/libertarianism-for-beginners_982/index.html)\n\n\n\n\n\n\n\n    ### [Libertarianism for Beginners](https://books.toscrape.com/catalogue/libertarianism-for-beginners_982/index.html \"Libertarianism for Beginners\")\n\n\n\n\n\n    £51.33\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n20. [![It's Only the Himalayas](https://books.toscrape.com/media/cache/27/a5/27a53d0bb95bdd88288eaf66c9230d7e.jpg)](https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html)\n\n\n\n\n\n\n\n    ### [It's Only the Himalayas](https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html \"It's Only the Himalayas\")\n\n\n\n\n\n    £45.17\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n\n-\nPage 1 of 50\n\n\n- [next](https://books.toscrape.com/catalogue/page-2.html)",
+                "metadata": {
+                  "language": "en-us",
+                  "title": "\n    All products | Books to Scrape - Sandbox\n",
+                  "created": "24th Jun 2016 09:29",
+                  "description": "",
+                  "viewport": "width=device-width",
+                  "robots": "NOARCHIVE,NOCACHE",
+                  "favicon": "https://books.toscrape.com/static/oscar/favicon.ico",
+                  "scrapeId": "019f7978-cb05-705b-8948-fbb4508fe2a7",
+                  "sourceURL": "https://books.toscrape.com/",
+                  "url": "https://books.toscrape.com/",
+                  "statusCode": 200,
+                  "contentType": "text/html",
+                  "proxyUsed": "basic",
+                  "cacheState": "hit",
+                  "cachedAt": "2026-07-17T15:53:21.921Z",
+                  "creditsUsed": 1
+                }
+              },
+              {
+                "markdown": "- [Home](https://books.toscrape.com/index.html)\n- [Books](https://books.toscrape.com/catalogue/category/books_1/index.html)\n- [Travel](https://books.toscrape.com/catalogue/category/books/travel_2/index.html)\n- See America: A Celebration of Our National Parks & Treasured Sites\n\n![See America: A Celebration of Our National Parks & Treasured Sites](https://books.toscrape.com/media/cache/c7/1a/c71a85dbf8c2dbc75cb271026618477c.jpg)\n\n# See America: A Celebration of Our National Parks & Treasured Sites\n\n£48.87\n\n\nIn stock (14 available)\n\n\n* * *\n\n**Warning!** This is a demo website for web scraping purposes. Prices and ratings here were randomly assigned and have no real meaning.\n\n## Product Description\n\nTo coincide with the 2016 centennial anniversary of the National Parks Service, the Creative Action Network has partnered with the National Parks Conservation Association to revive and reimagine the legacy of WPA travel posters. Artists from all over the world have participated in the creation of this new, crowdsourced collection of See America posters for a modern era. Fe To coincide with the 2016 centennial anniversary of the National Parks Service, the Creative Action Network has partnered with the National Parks Conservation Association to revive and reimagine the legacy of WPA travel posters. Artists from all over the world have participated in the creation of this new, crowdsourced collection of See America posters for a modern era. Featuring artwork for 75 national parks and monuments across all 50 states, this engaging keepsake volume celebrates the full range of our nation's landmarks and treasured wilderness. ...more\n\n## Product Information\n\n| UPC | f9705c362f070608 |\n| Product Type | Books |\n| Price (excl. tax) | £48.87 |\n| Price (incl. tax) | £48.87 |\n| Tax | £0.00 |\n| Availability | In stock (14 available) |\n| Number of reviews | 0 |\n\n## Products you recently viewed\n\n- [![Full Moon over Noah’s Ark: An Odyssey to Mount Ararat and Beyond](https://books.toscrape.com/media/cache/57/77/57770cac1628f4407636635f4b85e88c.jpg)](https://books.toscrape.com/catalogue/full-moon-over-noahs-ark-an-odyssey-to-mount-ararat-and-beyond_811/index.html)\n\n\n\n\n\n\n\n### [Full Moon over Noah’s ...](https://books.toscrape.com/catalogue/full-moon-over-noahs-ark-an-odyssey-to-mount-ararat-and-beyond_811/index.html \"Full Moon over Noah’s Ark: An Odyssey to Mount Ararat and Beyond\")\n\n\n\n\n\n£49.43\n\n\n\n\n\nIn stock\n\n\n\nAdd to basket\n\n- [![It's Only the Himalayas](https://books.toscrape.com/media/cache/27/a5/27a53d0bb95bdd88288eaf66c9230d7e.jpg)](https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html)\n\n\n\n\n\n\n\n### [It's Only the Himalayas](https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html \"It's Only the Himalayas\")\n\n\n\n\n\n£45.17\n\n\n\n\n\nIn stock\n\n\n\nAdd to basket\n\n- [![Libertarianism for Beginners](https://books.toscrape.com/media/cache/0b/bc/0bbcd0a6f4bcd81ccb1049a52736406e.jpg)](https://books.toscrape.com/catalogue/libertarianism-for-beginners_982/index.html)\n\n\n\n\n\n\n\n### [Libertarianism for Beginners](https://books.toscrape.com/catalogue/libertarianism-for-beginners_982/index.html \"Libertarianism for Beginners\")\n\n\n\n\n\n£51.33\n\n\n\n\n\nIn stock\n\n\n\nAdd to basket\n\n- [![Mesaerion: The Best Science Fiction Stories 1800-1849](https://books.toscrape.com/media/cache/09/a3/09a3aef48557576e1a85ba7efea8ecb7.jpg)](https://books.toscrape.com/catalogue/mesaerion-the-best-science-fiction-stories-1800-1849_983/index.html)\n\n\n\n\n\n\n\n### [Mesaerion: The Best Science ...](https://books.toscrape.com/catalogue/mesaerion-the-best-science-fiction-stories-1800-1849_983/index.html \"Mesaerion: The Best Science Fiction Stories 1800-1849\")\n\n\n\n\n\n£37.59\n\n\n\n\n\nIn stock\n\n\n\nAdd to basket\n\n- [![Olio](https://books.toscrape.com/media/cache/55/33/553310a7162dfbc2c6d19a84da0df9e1.jpg)](https://books.toscrape.com/catalogue/olio_984/index.html)\n\n\n\n\n\n\n\n### [Olio](https://books.toscrape.com/catalogue/olio_984/index.html \"Olio\")\n\n\n\n\n\n£23.88\n\n\n\n\n\nIn stock\n\n\n\nAdd to basket\n\n- [![Our Band Could Be Your Life: Scenes from the American Indie Underground, 1981-1991](https://books.toscrape.com/media/cache/54/60/54607fe8945897cdcced0044103b10b6.jpg)](https://books.toscrape.com/catalogue/our-band-could-be-your-life-scenes-from-the-american-indie-underground-1981-1991_985/index.html)\n\n\n\n\n\n\n\n### [Our Band Could Be ...](https://books.toscrape.com/catalogue/our-band-could-be-your-life-scenes-from-the-american-indie-underground-1981-1991_985/index.html \"Our Band Could Be Your Life: Scenes from the American Indie Underground, 1981-1991\")\n\n\n\n\n\n£57.25\n\n\n\n\n\nIn stock\n\n\n\nAdd to basket",
+                "metadata": {
+                  "created": "24th Jun 2016 09:29",
+                  "viewport": "width=device-width",
+                  "robots": "NOARCHIVE,NOCACHE",
+                  "language": "en-us",
+                  "title": "\n    See America: A Celebration of Our National Parks & Treasured Sites | Books to Scrape - Sandbox\n",
+                  "description": "\n    To coincide with the 2016 centennial anniversary of the National Parks Service, the Creative Action Network has partnered with the National Parks Conservation Association to revive and reimagine the legacy of WPA travel posters. Artists from all over the world have participated in the creation of this new, crowdsourced collection of See America posters for a modern era. Fe To coincide with the 2016 centennial anniversary of the National Parks Service, the Creative Action Network has partnered with the National Parks Conservation Association to revive and reimagine the legacy of WPA travel posters. Artists from all over the world have participated in the creation of this new, crowdsourced collection of See America posters for a modern era. Featuring artwork for 75 national parks and monuments across all 50 states, this engaging keepsake volume celebrates the full range of our nation's landmarks and treasured wilderness. ...more\n",
+                  "favicon": "https://books.toscrape.com/static/oscar/favicon.ico",
+                  "scrapeId": "019f7978-cb4b-737f-9297-6e4fea85be4f",
+                  "sourceURL": "https://books.toscrape.com/catalogue/see-america-a-celebration-of-our-national-parks-treasured-sites_732/index.html",
+                  "url": "https://books.toscrape.com/catalogue/see-america-a-celebration-of-our-national-parks-treasured-sites_732/index.html",
+                  "statusCode": 200,
+                  "contentType": "text/html",
+                  "proxyUsed": "basic",
+                  "cacheState": "hit",
+                  "cachedAt": "2026-07-18T04:37:47.159Z",
+                  "creditsUsed": 1
+                }
+              },
+              {
+                "markdown": "- [Home](https://books.toscrape.com/index.html)\n- [Books](https://books.toscrape.com/catalogue/category/books_1/index.html)\n- [Poetry](https://books.toscrape.com/catalogue/category/books/poetry_23/index.html)\n- A Light in the Attic\n\n![A Light in the Attic](https://books.toscrape.com/media/cache/fe/72/fe72f0532301ec28892ae79a629a293c.jpg)\n\n# A Light in the Attic\n\n£51.77\n\n\nIn stock (22 available)\n\n\n* * *\n\n**Warning!** This is a demo website for web scraping purposes. Prices and ratings here were randomly assigned and have no real meaning.\n\n## Product Description\n\nIt's hard to imagine a world without A Light in the Attic. This now-classic collection of poetry and drawings from Shel Silverstein celebrates its 20th anniversary with this special edition. Silverstein's humorous and creative verse can amuse the dowdiest of readers. Lemon-faced adults and fidgety kids sit still and read these rhythmic words and laugh and smile and love th It's hard to imagine a world without A Light in the Attic. This now-classic collection of poetry and drawings from Shel Silverstein celebrates its 20th anniversary with this special edition. Silverstein's humorous and creative verse can amuse the dowdiest of readers. Lemon-faced adults and fidgety kids sit still and read these rhythmic words and laugh and smile and love that Silverstein. Need proof of his genius? RockabyeRockabye baby, in the treetopDon't you know a treetopIs no safe place to rock?And who put you up there,And your cradle, too?Baby, I think someone down here'sGot it in for you. Shel, you never sounded so good. ...more\n\n## Product Information\n\n| UPC | a897fe39b1053632 |\n| Product Type | Books |\n| Price (excl. tax) | £51.77 |\n| Price (incl. tax) | £51.77 |\n| Tax | £0.00 |\n| Availability | In stock (22 available) |\n| Number of reviews | 0 |",
+                "metadata": {
+                  "description": "\n    It's hard to imagine a world without A Light in the Attic. This now-classic collection of poetry and drawings from Shel Silverstein celebrates its 20th anniversary with this special edition. Silverstein's humorous and creative verse can amuse the dowdiest of readers. Lemon-faced adults and fidgety kids sit still and read these rhythmic words and laugh and smile and love th It's hard to imagine a world without A Light in the Attic. This now-classic collection of poetry and drawings from Shel Silverstein celebrates its 20th anniversary with this special edition. Silverstein's humorous and creative verse can amuse the dowdiest of readers. Lemon-faced adults and fidgety kids sit still and read these rhythmic words and laugh and smile and love that Silverstein. Need proof of his genius? RockabyeRockabye baby, in the treetopDon't you know a treetopIs no safe place to rock?And who put you up there,And your cradle, too?Baby, I think someone down here'sGot it in for you. Shel, you never sounded so good. ...more\n",
+                  "viewport": "width=device-width",
+                  "robots": "NOARCHIVE,NOCACHE",
+                  "title": "\n    A Light in the Attic | Books to Scrape - Sandbox\n",
+                  "language": "en-us",
+                  "created": "24th Jun 2016 09:29",
+                  "favicon": "https://books.toscrape.com/static/oscar/favicon.ico",
+                  "scrapeId": "019f7978-cb4b-737f-9297-72940b159ea2",
+                  "sourceURL": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+                  "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
+                  "statusCode": 200,
+                  "contentType": "text/html",
+                  "proxyUsed": "basic",
+                  "cacheState": "hit",
+                  "cachedAt": "2026-07-18T09:01:11.944Z",
+                  "creditsUsed": 1
+                }
+              },
+              {
+                "markdown": "- [Home](https://books.toscrape.com/index.html)\n- [Books](https://books.toscrape.com/catalogue/category/books_1/index.html)\n- Travel\n\n# Travel\n\n**11** results.\n\n\n\n\n\n\n**Warning!** This is a demo website for web scraping purposes. Prices and ratings here were randomly assigned and have no real meaning.\n\n01. [![It's Only the Himalayas](https://books.toscrape.com/media/cache/27/a5/27a53d0bb95bdd88288eaf66c9230d7e.jpg)](https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html)\n\n\n\n\n\n\n\n    ### [It's Only the Himalayas](https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html \"It's Only the Himalayas\")\n\n\n\n\n\n    £45.17\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n02. [![Full Moon over Noah’s Ark: An Odyssey to Mount Ararat and Beyond](https://books.toscrape.com/media/cache/57/77/57770cac1628f4407636635f4b85e88c.jpg)](https://books.toscrape.com/catalogue/full-moon-over-noahs-ark-an-odyssey-to-mount-ararat-and-beyond_811/index.html)\n\n\n\n\n\n\n\n    ### [Full Moon over Noah’s ...](https://books.toscrape.com/catalogue/full-moon-over-noahs-ark-an-odyssey-to-mount-ararat-and-beyond_811/index.html \"Full Moon over Noah’s Ark: An Odyssey to Mount Ararat and Beyond\")\n\n\n\n\n\n    £49.43\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n03. [![See America: A Celebration of Our National Parks & Treasured Sites](https://books.toscrape.com/media/cache/9a/7e/9a7e63f12829df4b43b31d110bf3dc2e.jpg)](https://books.toscrape.com/catalogue/see-america-a-celebration-of-our-national-parks-treasured-sites_732/index.html)\n\n\n\n\n\n\n\n    ### [See America: A Celebration ...](https://books.toscrape.com/catalogue/see-america-a-celebration-of-our-national-parks-treasured-sites_732/index.html \"See America: A Celebration of Our National Parks & Treasured Sites\")\n\n\n\n\n\n    £48.87\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n04. [![Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel](https://books.toscrape.com/media/cache/d5/bf/d5bf0090470b0b8ea46d9c166f7895aa.jpg)](https://books.toscrape.com/catalogue/vagabonding-an-uncommon-guide-to-the-art-of-long-term-world-travel_552/index.html)\n\n\n\n\n\n\n\n    ### [Vagabonding: An Uncommon Guide ...](https://books.toscrape.com/catalogue/vagabonding-an-uncommon-guide-to-the-art-of-long-term-world-travel_552/index.html \"Vagabonding: An Uncommon Guide to the Art of Long-Term World Travel\")\n\n\n\n\n\n    £36.94\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n05. [![Under the Tuscan Sun](https://books.toscrape.com/media/cache/98/c2/98c2e95c5fd1a4e7cd5f2b63c52826cb.jpg)](https://books.toscrape.com/catalogue/under-the-tuscan-sun_504/index.html)\n\n\n\n\n\n\n\n    ### [Under the Tuscan Sun](https://books.toscrape.com/catalogue/under-the-tuscan-sun_504/index.html \"Under the Tuscan Sun\")\n\n\n\n\n\n    £37.33\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n06. [![A Summer In Europe](https://books.toscrape.com/media/cache/4e/15/4e15150388702ebca2c5a523ac270539.jpg)](https://books.toscrape.com/catalogue/a-summer-in-europe_458/index.html)\n\n\n\n\n\n\n\n    ### [A Summer In Europe](https://books.toscrape.com/catalogue/a-summer-in-europe_458/index.html \"A Summer In Europe\")\n\n\n\n\n\n    £44.34\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n07. [![The Great Railway Bazaar](https://books.toscrape.com/media/cache/76/de/76de41867f323d7f1f4fbe2fdfc1b2ba.jpg)](https://books.toscrape.com/catalogue/the-great-railway-bazaar_446/index.html)\n\n\n\n\n\n\n\n    ### [The Great Railway Bazaar](https://books.toscrape.com/catalogue/the-great-railway-bazaar_446/index.html \"The Great Railway Bazaar\")\n\n\n\n\n\n    £30.54\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n08. [![A Year in Provence (Provence #1)](https://books.toscrape.com/media/cache/db/46/db46159b05faa5d95262112bf9c29ddd.jpg)](https://books.toscrape.com/catalogue/a-year-in-provence-provence-1_421/index.html)\n\n\n\n\n\n\n\n    ### [A Year in Provence ...](https://books.toscrape.com/catalogue/a-year-in-provence-provence-1_421/index.html \"A Year in Provence (Provence \\#1)\")\n\n\n\n\n\n    £56.88\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n09. [![The Road to Little Dribbling: Adventures of an American in Britain (Notes From a Small Island #2)](https://books.toscrape.com/media/cache/e0/4f/e04f8eda2a2fa947aec17640202d9ab0.jpg)](https://books.toscrape.com/catalogue/the-road-to-little-dribbling-adventures-of-an-american-in-britain-notes-from-a-small-island-2_277/index.html)\n\n\n\n\n\n\n\n    ### [The Road to Little ...](https://books.toscrape.com/catalogue/the-road-to-little-dribbling-adventures-of-an-american-in-britain-notes-from-a-small-island-2_277/index.html \"The Road to Little Dribbling: Adventures of an American in Britain (Notes From a Small Island \\#2)\")\n\n\n\n\n\n    £23.21\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n10. [![Neither Here nor There: Travels in Europe](https://books.toscrape.com/media/cache/06/81/0681530a7bc301caf5c3257e1b0f0750.jpg)](https://books.toscrape.com/catalogue/neither-here-nor-there-travels-in-europe_198/index.html)\n\n\n\n\n\n\n\n    ### [Neither Here nor There: ...](https://books.toscrape.com/catalogue/neither-here-nor-there-travels-in-europe_198/index.html \"Neither Here nor There: Travels in Europe\")\n\n\n\n\n\n    £38.95\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket\n\n11. [![1,000 Places to See Before You Die](https://books.toscrape.com/media/cache/d7/0f/d70f7edd92705c45a82118c3ff6c299d.jpg)](https://books.toscrape.com/catalogue/1000-places-to-see-before-you-die_1/index.html)\n\n\n\n\n\n\n\n    ### [1,000 Places to See ...](https://books.toscrape.com/catalogue/1000-places-to-see-before-you-die_1/index.html \"1,000 Places to See Before You Die\")\n\n\n\n\n\n    £26.08\n\n\n\n\n\n    In stock\n\n\n\n    Add to basket",
+                "metadata": {
+                  "created": "24th Jun 2016 09:29",
+                  "language": "en-us",
+                  "viewport": "width=device-width",
+                  "robots": "NOARCHIVE,NOCACHE",
+                  "description": "\n    \n",
+                  "title": "\n    Travel | \n     Books to Scrape - Sandbox\n\n",
+                  "favicon": "https://books.toscrape.com/static/oscar/favicon.ico",
+                  "scrapeId": "019f7978-cb4b-737f-9297-74edd76d837d",
+                  "sourceURL": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+                  "url": "https://books.toscrape.com/catalogue/category/books/travel_2/index.html",
+                  "statusCode": 200,
+                  "contentType": "text/html",
+                  "proxyUsed": "basic",
+                  "cacheState": "hit",
+                  "cachedAt": "2026-07-17T14:57:54.653Z",
+                  "creditsUsed": 1
+                }
+              },
+              {
+                "markdown": "- [Home](https://books.toscrape.com/index.html)\n- [Books](https://books.toscrape.com/catalogue/category/books_1/index.html)\n- [Poetry](https://books.toscrape.com/catalogue/category/books/poetry_23/index.html)\n- A Light in the Attic\n\n![A Light in the Attic](https://books.toscrape.com/media/cache/fe/72/fe72f0532301ec28892ae79a629a293c.jpg)\n\n# A Light in the Attic\n\n£51.77\n\n\nIn stock (22 available)\n\n\n* * *\n\n**Warning!** This is a demo website for web scraping purposes. Prices and ratings here were randomly assigned and have no real meaning.\n\n## Product Description\n\nIt's hard to imagine a world without A Light in the Attic. This now-classic collection of poetry and drawings from Shel Silverstein celebrates its 20th anniversary with this special edition. Silverstein's humorous and creative verse can amuse the dowdiest of readers. Lemon-faced adults and fidgety kids sit still and read these rhythmic words and laugh and smile and love th It's hard to imagine a world without A Light in the Attic. This now-classic collection of poetry and drawings from Shel Silverstein celebrates its 20th anniversary with this special edition. Silverstein's humorous and creative verse can amuse the dowdiest of readers. Lemon-faced adults and fidgety kids sit still and read these rhythmic words and laugh and smile and love that Silverstein. Need proof of his genius? RockabyeRockabye baby, in the treetopDon't you know a treetopIs no safe place to rock?And who put you up there,And your cradle, too?Baby, I think someone down here'sGot it in for you. Shel, you never sounded so good. ...more\n\n## Product Information\n\n| UPC | a897fe39b1053632 |\n| Product Type | Books |\n| Price (excl. tax) | £51.77 |\n| Price (incl. tax) | £51.77 |\n| Tax | £0.00 |\n| Availability | In stock (22 available) |\n| Number of reviews | 0 |",
+                "metadata": {
+                  "created": "24th Jun 2016 09:29",
+                  "description": "\n    It's hard to imagine a world without A Light in the Attic. This now-classic collection of poetry and drawings from Shel Silverstein celebrates its 20th anniversary with this special edition. Silverstein's humorous and creative verse can amuse the dowdiest of readers. Lemon-faced adults and fidgety kids sit still and read these rhythmic words and laugh and smile and love th It's hard to imagine a world without A Light in the Attic. This now-classic collection of poetry and drawings from Shel Silverstein celebrates its 20th anniversary with this special edition. Silverstein's humorous and creative verse can amuse the dowdiest of readers. Lemon-faced adults and fidgety kids sit still and read these rhythmic words and laugh and smile and love that Silverstein. Need proof of his genius? RockabyeRockabye baby, in the treetopDon't you know a treetopIs no safe place to rock?And who put you up there,And your cradle, too?Baby, I think someone down here'sGot it in for you. Shel, you never sounded so good. ...more\n",
+                  "viewport": "width=device-width",
+                  "robots": "NOARCHIVE,NOCACHE",
+                  "title": "\n    A Light in the Attic | Books to Scrape - Sandbox\n",
+                  "language": "en-us",
+                  "favicon": "https://books.toscrape.com/static/oscar/favicon.ico",
+                  "scrapeId": "019f7978-cb4b-737f-9297-7834222e684c",
+                  "sourceURL": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html?a3=1784384179",
+                  "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html?a3=1784384179",
+                  "statusCode": 200,
+                  "contentType": "text/html",
+                  "proxyUsed": "basic",
+                  "cacheState": "hit",
+                  "cachedAt": "2026-07-19T08:16:20.812Z",
+                  "creditsUsed": 1
+                }
+              }
+            ],
+            "createdAt": "2026-07-19T08:23:07.064Z",
+            "completedAt": "2026-07-19T08:23:08.825Z",
+            "duration": 1.761
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Crawl a website and scrape all pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crawl a website and scrape all pages": {
+      "main": [
+        [
+          {
+            "node": "Wait for 30 seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for 30 seconds": {
+      "main": [
+        [
+          {
+            "node": "Get crawl status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get crawl status": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get crawl status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ee8e16f3-d032-47d2-b546-8e79b3a88e09",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "367a8b1fd74cb8238db46aa43e38c21dd6b10e21b7a3a31f9405314b61dc29b3"
+  },
+  "nodeGroups": [],
+  "id": "jp7G0uLxT4zUEQXG",
+  "tags": []
+}
