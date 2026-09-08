@@ -1,2 +1,9 @@
 .DS_Store
-.DS_Store
+
+# LearningPlayWrightWithParmod
+LearningPlayWrightWithParmod/node_modules/
+LearningPlayWrightWithParmod/test-results/
+LearningPlayWrightWithParmod/playwright-report/
+LearningPlayWrightWithParmod/blob-report/
+LearningPlayWrightWithParmod/playwright/.cache/
+LearningPlayWrightWithParmod/playwright/.auth/
